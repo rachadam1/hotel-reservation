@@ -77,3 +77,58 @@ exports.createReservation = (req, res) => {
     }
   );
 };
+exports.createReservation = (req, res) => {
+  const {
+    nom_client, date_arrivee, date_depart,
+    heure_arrivee, heure_depart,
+    type_reservation, chambre_id, hotel_id
+  } = req.body;
+
+  // Vérification de conflit
+  const checkConflit = `
+    SELECT * FROM reservations 
+    WHERE chambre_id = ? AND (
+      (date_arrivee <= ? AND date_depart >= ?) OR
+      (heure_arrivee <= ? AND heure_depart >= ?)
+    )
+  `;
+
+  db.query(checkConflit, [chambre_id, date_arrivee, date_depart, heure_arrivee, heure_depart], (err, rows) => {
+    if (err) return res.status(500).json({ message: "Erreur lors de la vérification." });
+    if (rows.length > 0) return res.status(409).json({ message: "Conflit : chambre déjà réservée." });
+
+    // Insertion
+    const insert = `
+      INSERT INTO reservations (nom_client, date_arrivee, date_depart, heure_arrivee, heure_depart, type_reservation, chambre_id, hotel_id, statut_reservation)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'confirmée')
+    `;
+
+    db.query(insert, [nom_client, date_arrivee, date_depart, heure_arrivee, heure_depart, type_reservation, chambre_id, hotel_id], (err2, result) => {
+      if (err2) return res.status(500).json({ message: "Erreur lors de l’enregistrement." });
+
+      // Mise à jour du statut de la chambre
+      db.query("UPDATE chambres SET statut = 'occupée' WHERE id = ?", [chambre_id]);
+      res.status(201).json({ message: "Réservation enregistrée." });
+    });
+  });
+};
+exports.getReservationsByHotel = (req, res) => {
+  const { hotel_id, date } = req.query;
+  let sql = `
+    SELECT r.*, c.numero AS numero_chambre 
+    FROM reservations r 
+    JOIN chambres c ON r.chambre_id = c.id 
+    WHERE r.hotel_id = ?
+  `;
+  const params = [hotel_id];
+
+  if (date) {
+    sql += " AND r.date_arrivee <= ? AND r.date_depart >= ?";
+    params.push(date, date);
+  }
+
+  db.query(sql, params, (err, results) => {
+    if (err) return res.status(500).json({ message: "Erreur lors de la récupération." });
+    res.json(results);
+  });
+};

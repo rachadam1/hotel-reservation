@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Ajouter un hôtel</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <style>
+    body { font-family: Arial; padding: 40px; background: #f4f8fc; }
+    .formulaire { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h1 { text-align: center; margin-bottom: 20px; }
+    label { display: block; margin-top: 15px; font-weight: bold; }
+    input, textarea { width: 100%; padding: 10px; margin-top: 5px; font-size: 16px; }
+    button { margin-top: 20px; padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="formulaire">
+    <h1>➕ Ajouter un nouvel hôtel</h1>
+
+    <form id="formAjoutHotel">
+      <label>Nom :</label>
+      <input type="text" id="nom" required>
+
+      <label>Adresse :</label>
+      <textarea id="adresse"></textarea>
+
+      <label>Ville :</label>
+      <input type="text" id="ville">
+
+      <label>Pays :</label>
+      <input type="text" id="pays">
+
+      <label>Email de contact :</label>
+      <input type="email" id="email_contact">
+
+      <label>Téléphone :</label>
+      <input type="text" id="telephone">
+
+      <label>Logo (URL) :</label>
+      <input type="text" id="logo_url">
+
+      <label>Description :</label>
+      <textarea id="description"></textarea>
+
+      <button type="submit">💾 Enregistrer</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('formAjoutHotel').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const data = {
+        nom: document.getElementById('nom').value,
+        adresse: document.getElementById('adresse').value,
+        ville: document.getElementById('ville').value,
+        pays: document.getElementById('pays').value,
+        email_contact: document.getElementById('email_contact').value,
+        téléphone: document.getElementById('telephone').value,
+        logo_url: document.getElementById('logo_url').value,
+        description: document.getElementById('description').value
+      };
+
+      const res = await fetch('http://localhost:3000/api/hotels', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        alert('✅ Hôtel ajouté avec succès !');
+        window.location.href = 'admin-hotels.html';
+      } else {
+        alert('❌ Erreur : ' + result.message);
+      }
+    });
+  </script>
+</body>
+</html>

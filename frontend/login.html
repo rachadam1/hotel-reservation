@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Connexion - Réservation Hôtel</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #f0f0f0, #d0e0ff);
+      padding: 40px;
+    }
+    .login-container {
+      max-width: 400px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+    h2 {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h2>Connexion</h2>
+    <form id="loginForm">
+      <input type="email" id="email" placeholder="Email" required>
+      <input type="password" id="mot_de_passe" placeholder="Mot de passe" required>
+      <button type="submit">Se connecter</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const email = document.getElementById('email').value;
+      const mot_de_passe = document.getElementById('mot_de_passe').value;
+
+      try {
+        const res = await fetch('http://localhost:3000/api/users/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, mot_de_passe })
+        });
+
+        const data = await res.json();
+
+        if (!data.token) {
+          alert('Connexion échouée : ' + data.message);
+          return;
+        }
+
+        localStorage.setItem('token', data.token);
+
+        const payload = JSON.parse(atob(data.token.split('.')[1]));
+        localStorage.setItem('role', payload.role);
+        localStorage.setItem('userId', payload.id);
+        localStorage.setItem('userName', payload.nom || 'Utilisateur');
+
+        window.location.href = 'dashboard.html';
+      } catch (error) {
+        console.error('Erreur de connexion :', error);
+        alert('Erreur serveur');
+      }
+    });
+  </script>
+</body>
+</html>
+

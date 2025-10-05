@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Chambres de l’hôtel</title>
+  <style>
+    body { font-family: Arial; padding: 40px; background: #f4f8fc; }
+    h1 { text-align: center; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+    th, td { padding: 12px; border: 1px solid #ccc; text-align: left; }
+    th { background: #007bff; color: white; }
+    .btn { padding: 6px 12px; margin-right: 5px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    .filtre { margin-bottom: 20px; text-align: center; }
+    select { padding: 8px; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <h1>🛏️ Chambres de l’hôtel</h1>
+
+  <div class="filtre">
+    <label for="filtreStatut">Filtrer par statut :</label>
+    <select id="filtreStatut" onchange="chargerChambres()">
+      <option value="">Toutes</option>
+      <option value="disponible">🟢 Disponible</option>
+      <option value="occupée">🔴 Occupée</option>
+      <option value="à nettoyer">🟡 À nettoyer</option>
+      <option value="hors service">🟠 Hors service</option>
+    </select>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Numéro</th>
+        <th>Type</th>
+        <th>Étage</th>
+        <th>Statut</th>
+        <th>Prix classique</th>
+        <th>Prix horaire</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="chambresTableBody"></tbody>
+  </table>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const hotelId = params.get('id');
+
+    async function chargerChambres() {
+      const statut = document.getElementById('filtreStatut').value;
+      let url = `http://localhost:3000/api/chambres?hotel_id=${hotelId}`;
+      if (statut) url += `&statut=${statut}`;
+
+      const res = await fetch(url);
+      const chambres = await res.json();
+      const tbody = document.getElementById('chambresTableBody');
+      tbody.innerHTML = '';
+
+      chambres.forEach(chambre => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${chambre.numero}</td>
+          <td>${chambre.type}</td>
+          <td>${chambre.etage}</td>
+          <td>${chambre.statut}</td>
+          <td>${chambre.prix_classique} FCFA</td>
+          <td>${chambre.prix_horaire} FCFA</td>
+          <td>
+            <button class="btn" onclick="changerStatut(${chambre.id})">🛠️ Changer statut</button>
+            <button class="btn" onclick="reserver(${chambre.id})">📅 Réserver</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function changerStatut(id) {
+      const nouveauStatut = prompt("Nouveau statut : disponible, occupée, à nettoyer, hors service");
+      if (!nouveauStatut) return;
+
+      fetch(`http://localhost:3000/api/chambres/${id}/statut`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ statut: nouveauStatut })
+      }).then(() => chargerChambres());
+    }
+
+    function reserver(id) {
+      window.location.href = `formulaire-reservation.html?chambre_id=${id}&hotel_id=${hotelId}`;
+    }
+
+    chargerChambres();
+  </script>
+</body>
+</html>
