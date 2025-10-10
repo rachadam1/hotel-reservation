@@ -5,7 +5,7 @@ import Header from './components/common/Header';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import LoadingSpinner from './components/common/LoadingSpinner';
 import DashboardReception from './pages/reception/DashboardReception';
-import DashboardAdmin from './pages/admin/DashboardAdmin'
+import DashboardAdmin from './pages/admin/DashboardAdmin';
 
 // Pages d'authentification
 import Login from './pages/Login';
